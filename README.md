@@ -76,8 +76,8 @@ The first Mission Control migration creates a browser-side `bibaboo-v02-before-m
 ## Free external data
 
 - Weather uses Open-Meteo without a paid API key.
-- Portuguese news uses official public RSS feeds from RTP and RR through the local `/api/news` endpoint.
-- The news cache is in server memory and disappears when the server restarts.
+- Portuguese news uses official public RSS feeds from RTP and RR. The local app reads them through `/api/news`; GitHub Pages reads a static `data/news.json` snapshot generated during deployment.
+- The local news cache is in server memory and disappears when the server restarts. The Pages workflow refreshes its public RSS snapshot every three hours and on each deployment.
 - The application does not use OpenAI API, paid translation APIs or a paid news API.
 
 RSS text is treated as untrusted data and rendered as plain text. Original articles open on the publisher's site; the application does not bypass paywalls or copy protected full articles.
@@ -103,7 +103,7 @@ The build process copies `dist/` to the ignored `build/` directory. `dist/` is t
 
 The repository includes a GitHub Actions workflow that validates the project and deploys the generated `build/` directory. The Pages project URL is `https://double-gif.github.io/double-home/`; application assets and hash navigation use project-relative paths, while the local `http://127.0.0.1:8765` version keeps its existing behavior.
 
-GitHub Pages is static hosting. CONTROL ROOM, RESEARCH LAB, translation history, FOCUS CHAMBER, DATA VAULT, LIFE LOG and MISSION CONTROL run in the browser. Weather continues to use the free Open-Meteo endpoint. Live RR/RTP news requires the local Node server's `/api/news` RSS aggregator, so the Pages interface reports that dependency instead of showing fabricated news.
+GitHub Pages is static hosting. CONTROL ROOM, RESEARCH LAB, TRAINING NETWORK, FOCUS CHAMBER, DATA VAULT, LIFE LOG and MISSION CONTROL run in the browser. Weather continues to use the free Open-Meteo endpoint. The workflow fetches the same official RR/RTP feeds and writes the normalized public summaries to `build/data/news.json`. A source failure does not block deployment or Training Network; available sources are published, and an all-source failure produces a safe empty feed with source status instead of fabricated news.
 
 The Pages origin has its own empty browser storage. It cannot read or publish records stored under the local `127.0.0.1:8765` origin.
 

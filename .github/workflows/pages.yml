@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '17 */3 * * *'
 
 permissions:
   contents: read
@@ -32,6 +34,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Check and build static application
         run: PAGES_BUILD=1 pnpm check
+      - name: Generate free official RSS snapshot
+        run: pnpm news:static
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload production build

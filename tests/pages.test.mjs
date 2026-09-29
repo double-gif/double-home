@@ -23,25 +23,48 @@ test('styles and modules remain compatible with the project-site base path',()=>
 test('Pages workflow publishes the production build instead of the repository root',()=>{
  const workflow=fs.readFileSync('.github/workflows/pages.yml','utf8');
  assert(workflow.includes('run: PAGES_BUILD=1 pnpm check'));
+ assert(workflow.includes('run: pnpm news:static'));
+ assert(workflow.includes("cron: '17 */3 * * *'"));
  assert(workflow.includes('path: build'));
  assert(workflow.includes('actions/deploy-pages@v4'));
  assert(fs.existsSync('dist/.nojekyll'));
 });
 
-test('static hosting reports the local-only RSS dependency without demo substitution',async()=>{
+test('static hosting loads a project-relative RSS snapshot once without a render loop',async()=>{
  const source=fs.readFileSync('dist/components/training/live-news.js','utf8');
- assert(source.includes('LIVE RSS REQUIRES THE LOCAL SERVER'));
+ assert(source.includes("new URL('../../data/news.json',import.meta.url)"));
  assert(source.includes('app-hosting'));
- assert(source.includes("fetch('/api/news'"));
+ assert(source.includes("return '/api/news'"));
  assert(!source.includes('mock'));
  const cache=new Map();
  globalThis.localStorage={getItem:key=>cache.get(key)||null,setItem:(key,value)=>cache.set(key,value)};
  globalThis.document={querySelector:selector=>selector.includes('app-hosting')?{}:null};
- globalThis.fetch=()=>{throw Error('static mode must not request the local RSS endpoint')};
+ let calls=0,url='';
+ globalThis.fetch=async input=>{calls++;url=String(input);return new Response(JSON.stringify({articles:[],sources:[],checkedAt:Date.now(),mode:'static-rss'}),{status:200,headers:{'content-type':'application/json'}})};
  const module=await import('../dist/components/training/live-news.js?pages-static');
  assert.equal(await module.loadNews(),true);
+ assert.equal(await module.loadNews(),false);
+ assert.equal(calls,1);
+ assert.match(url,/\/data\/news\.json$/);
  assert.equal(module.liveNews.staticMode,true);
- assert(module.newsView({newsCategory:''}).includes('实时 RSS 需要在 127.0.0.1:8765 运行本地服务器'));
+ assert(module.newsView({newsCategory:''}).includes('STATIC RSS SNAPSHOT'));
+ delete globalThis.fetch;
+ delete globalThis.document;
+ delete globalThis.localStorage;
+});
+
+test('static news failure settles and keeps Training usable',async()=>{
+ globalThis.localStorage={getItem:()=>null,setItem:()=>{}};
+ globalThis.document={querySelector:selector=>selector.includes('app-hosting')?{}:null};
+ let calls=0;
+ globalThis.fetch=async()=>{calls++;throw Error('offline')};
+ const module=await import('../dist/components/training/live-news.js?pages-offline');
+ assert.equal(await module.loadNews(),true);
+ assert.equal(await module.loadNews(),false);
+ assert.equal(calls,1);
+ assert.equal(module.liveNews.loading,false);
+ assert.equal(module.liveNews.error,'NEWS FEED TEMPORARILY UNAVAILABLE');
+ assert(module.newsView({newsCategory:''}).includes('RETRY'));
  delete globalThis.fetch;
  delete globalThis.document;
  delete globalThis.localStorage;
