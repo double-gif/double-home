@@ -1,0 +1,38 @@
+# Environment and local overrides
+.env
+.env.*
+!.env.example
+*.local
+
+# Dependencies and generated output
+node_modules/
+build/
+coverage/
+.cache/
+.tmp/
+temp/
+tmp/
+
+# Private/local data and exports
+private-data/
+user-data/
+backups/
+backup/
+exports/
+token-cache*
+oauth-cache*
+credentials*
+secret*
+
+# Logs and operating-system files
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Local development artifacts
+work/
+.openai/
+mission-preview.png
