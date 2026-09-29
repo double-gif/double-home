@@ -1,8 +1,12 @@
 # double's home
 
-A private, local-first cyberpunk pixel-art Personal OS.
+A local-first cyberpunk pixel-art Personal OS.
 
-`double's home` is a single-user workspace built with native JavaScript ES modules, HTML/CSS and a small local Node.js server. Personal records stay in the browser. The project does not require a paid AI API, cloud database or public account system.
+`double's home` is designed primarily as a private, single-user workspace. Its source code may be publicly visible, while personal records stay in the owner's browser. The project uses native JavaScript ES modules, HTML/CSS and a small local Node.js server. It does not require a paid AI API, cloud database, analytics, telemetry or public account system.
+
+> **PUBLIC REPOSITORY DOES NOT MEAN THE OWNER'S LOCAL DATA IS PUBLIC.**
+>
+> This repository contains program code, project configuration and visual assets. It does not contain the owner's tasks, translations, research notes, diary, mood, finance records, focus history, private files or browser backups. GitHub is used for source-code version control only; it does not publish the locally running website instance.
 
 ## Current modules
 
@@ -65,6 +69,8 @@ The Git repository contains source code, UI code, visual assets, project configu
 
 The application intentionally retains the historical `bibaboo-v02` localStorage key and its existing IndexedDB database so upgrades do not disconnect current data. Do not rename storage keys merely to match the current brand.
 
+Fresh clones start with empty task, focus, translation, research, diary, mood, finance and file collections. Any language-learning fallback text included in source is explicitly synthetic demo material, not a copy of the owner's records.
+
 The first Mission Control migration creates a browser-side `bibaboo-v02-before-mission` backup. This backup remains in the browser and is not written into the repository.
 
 ## Free external data
@@ -104,4 +110,4 @@ The build process copies `dist/` to the ignored `build/` directory. `dist/` is t
 
 ## Repository safety
 
-Never commit `.env`, exported browser data, private backups, token caches or credentials. The repository is designed for a private GitHub repository, but private repositories should still be treated as code storage rather than secret storage.
+Never commit `.env`, exported browser data, private backups, token caches or credentials. Treat both public and private repositories as code storage rather than secret storage.
