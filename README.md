@@ -99,6 +99,14 @@ The current city, apartment and Mission/Focus backgrounds are formal project ass
 
 The build process copies `dist/` to the ignored `build/` directory. `dist/` is the maintained frontend source, not generated output.
 
+## GitHub Pages
+
+The repository includes a GitHub Actions workflow that validates the project and deploys the generated `build/` directory. The Pages project URL is `https://double-gif.github.io/double-home/`; application assets and hash navigation use project-relative paths, while the local `http://127.0.0.1:8765` version keeps its existing behavior.
+
+GitHub Pages is static hosting. CONTROL ROOM, RESEARCH LAB, translation history, FOCUS CHAMBER, DATA VAULT, LIFE LOG and MISSION CONTROL run in the browser. Weather continues to use the free Open-Meteo endpoint. Live RR/RTP news requires the local Node server's `/api/news` RSS aggregator, so the Pages interface reports that dependency instead of showing fabricated news.
+
+The Pages origin has its own empty browser storage. It cannot read or publish records stored under the local `127.0.0.1:8765` origin.
+
 ## Architecture notes
 
 - `server.mjs` serves the local application and the free RSS endpoint.
