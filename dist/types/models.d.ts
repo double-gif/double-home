@@ -1,9 +1,11 @@
 export type Category='RESEARCH'|'PORTUGUESE'|'TRANSLATION'|'WORK'|'LIFE'|'OTHER';
+export interface LocalProfile{profileId:string;displayName:string;createdAt:string;updatedAt:string;version:number;lastBackup?:string}
+export interface ProfileScoped{profileId:string}
 export type FocusProject=Category|'THESIS';
-export interface Session{id:string;date:string;createdAt:string;category:Category;durationMinutes:number;linkedTaskId:string;note:string;cat:FocusProject;minutes:number;endedAt?:number}
-export interface Quest{id:string;title:string;category:Category;questType:'MAIN'|'SIDE'|'DAILY'|'NORMAL';status:'TODAY'|'UPCOMING'|'SOMEDAY'|'DONE';dueDate:string;estimatedMinutes:number|null;note:string;createdAt:string;completedAt:string|null;expAwarded:boolean;parentTaskId?:string}
+export interface Session extends ProfileScoped{id:string;date:string;createdAt:string;category:Category;durationMinutes:number;linkedTaskId:string;note:string;cat:FocusProject;minutes:number;endedAt?:number}
+export interface Quest extends ProfileScoped{id:string;title:string;category:Category;questType:'MAIN'|'SIDE'|'DAILY'|'NORMAL';status:'TODAY'|'UPCOMING'|'SOMEDAY'|'DONE';dueDate:string;estimatedMinutes:number|null;note:string;createdAt:string;completedAt:string|null;expAwarded:boolean;parentTaskId?:string}
 export interface PlayerProgress{level:number;currentExp:number;totalExp:number;awardedTaskIds:string[]}
-export interface ExpEvent{id:string;taskId:string;amount:number;source:string;createdAt:string}
+export interface ExpEvent extends ProfileScoped{id:string;taskId:string;amount:number;source:string;createdAt:string}
 export interface Paper{id:string;title:string;author:string;year:string;type:string;status:string;tags:string;theme:string;progress:number;theory:string;chapter:string;rq:string;fileId?:string;object?:string;question?:string;method?:string;argument?:string;conclusion?:string;concepts?:string;relevance?:string;quotes?:string;pages?:string;evaluation?:string;note?:string}
 export interface NewsArticle{id:string;title:string;source:string;date:string;category:string;summary:string;body:string;zh:string;keywords:string;syntax:string;advice:string}
 export interface Diary{id:string;date:string;title:string;content:string;tags:string;mood:string}

@@ -2,7 +2,7 @@
 
 A local-first cyberpunk pixel-art Personal OS.
 
-`double's home` is designed primarily as a private, single-user workspace. Its source code may be publicly visible, while personal records stay in the owner's browser. The project uses native JavaScript ES modules, HTML/CSS and a small local Node.js server. It does not require a paid AI API, cloud database, analytics, telemetry or public account system.
+`double's home` is a public application with local-only personal data. Each visitor creates a lightweight local profile in their own browser; there is no server account, email, password or cloud user database. Personal records stay under that browser profile. The project uses native JavaScript ES modules, HTML/CSS and a small optional local Node.js server. It does not require a paid AI API, analytics, telemetry or tracking SDK.
 
 > **PUBLIC REPOSITORY DOES NOT MEAN THE OWNER'S LOCAL DATA IS PUBLIC.**
 >
@@ -56,7 +56,7 @@ pnpm build
 
 `pnpm check` runs all four commands in order.
 
-## Local data and privacy
+## Local profiles, data and privacy
 
 The Git repository contains source code, UI code, visual assets, project configuration, tests and documentation. It does **not** automatically back up browser data such as:
 
@@ -67,11 +67,17 @@ The Git repository contains source code, UI code, visual assets, project configu
 - diary, mood and finance records;
 - local Data Vault file handles.
 
-The application intentionally retains the historical `bibaboo-v02` localStorage key and its existing IndexedDB database so upgrades do not disconnect current data. Do not rename storage keys merely to match the current brand.
+The application supports multiple local profiles in one browser. Profile metadata contains only a locally generated UUID, display name and timestamps. Each profile's personal state is stored under a separate `double-home:profile:<profileId>:state` namespace, and records are tagged with that profile ID. Profile IDs are not device fingerprints and are not transmitted by the application.
+
+On the first upgrade, an existing `bibaboo-v02` save is copied into a local profile named `double`. The legacy key remains intact as a migration source; it is not deleted before verification. New profiles begin empty. Data Vault blobs use profile-scoped IndexedDB keys, with a compatibility fallback for files imported before the migration.
+
+Settings provides current-profile export, validated merge/replace import, current-profile deletion, an advanced all-profile deletion option and an optional user-triggered persistent-storage request. Exported JSON contains only the active profile and excludes local file contents. Backups remain the user's responsibility and are ignored by Git.
 
 Fresh clones start with empty task, focus, translation, research, diary, mood, finance and file collections. Any language-learning fallback text included in source is explicitly synthetic demo material, not a copy of the owner's records.
 
-The first Mission Control migration creates a browser-side `bibaboo-v02-before-mission` backup. This backup remains in the browser and is not written into the repository.
+The first Mission Control migration may have created a browser-side `bibaboo-v02-before-mission` backup. This backup remains in the browser and is not written into the repository.
+
+The current application does not transmit personal records to the developer. Normal personal CRUD operations make no POST, PUT, PATCH or upload requests. Network access is limited to static application assets, public news data, the existing free weather service and links a user explicitly opens. GitHub Actions only builds public source/assets and public RSS data; it cannot access browser localStorage, IndexedDB or local profiles.
 
 ## Free external data
 
@@ -111,7 +117,8 @@ The Pages origin has its own empty browser storage. It cannot read or publish re
 
 - `server.mjs` serves the local application and the free RSS endpoint.
 - `dist/app.js` is the active frontend entry point.
-- `dist/lib/store.js` preserves the existing localStorage and IndexedDB behavior.
+- `dist/lib/store.js` owns local-profile namespaces and the backward-compatible legacy migration.
+- `dist/lib/privacy.js` validates current-profile backup export/import without executing imported content.
 - `dist/lib/progress/model.js` owns task, EXP and manual focus-log rules.
 - `dist/data/legacy-literature.js` is retained only to reconstruct original text for older saved translation records; it does not restore Literature Mode.
 - `retiredTimer` is a data-migration compatibility field; no Pomodoro UI or countdown logic is active.
