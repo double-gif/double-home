@@ -8,6 +8,7 @@ const store=await import('../dist/lib/store.js');
 const {shell,cityScreen}=await import('../dist/components/city/screens.js');
 const {missionShell}=await import('../dist/components/mission/shared.js');
 const {settingsView}=await import('../dist/components/privacy/privacy.js');
+const {destinations}=await import('../dist/components/hud/home.js');
 
 test('active profile name drives brand, Control Core and top user label',()=>{
  const double=store.createProfile('double');
@@ -62,4 +63,13 @@ test('desktop navigation stays compact while mobile bottom-nav rules remain',asy
  const missionCss=await import('node:fs/promises').then(fs=>fs.readFile('dist/styles/mission.css','utf8'));
  assert.doesNotMatch(missionCss,/mission-(?:nav|top|brand|global)|--mission-sidebar/);
  assert.match(missionCss,/object-fit:contain/);
+});
+
+test('Data Vault entry is removed while the Research library remains the sole file UI',async()=>{
+ const regular=shell('home','');
+ assert.equal(destinations.some(([id])=>id==='vault'),false);
+ assert.doesNotMatch(regular,/DATA VAULT|href="#vault"|data-value="vault"/);
+ assert.match(regular,/data-action="open-research-library"/);
+ const research=await import('../dist/components/research/research.js');
+ assert.match(research.research({research:'library',fileSearch:'',fileCategory:'',fileSort:'added'}),/LOCAL FILES|LOCAL LIBRARY/);
 });

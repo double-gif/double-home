@@ -8,6 +8,8 @@ test('static entry uses project-relative application assets',()=>{
  assert(localPaths.length>0);
  assert(localPaths.every(path=>!path.startsWith('/')));
  assert(html.includes('src="app.js"'));
+ assert(html.includes('rel="preload" as="image" href="assets/city-clean.png" fetchpriority="high"'));
+ assert(html.includes('rel="preload" as="image" href="assets/apartment-clean.png" fetchpriority="low"'));
 });
 
 test('styles and modules remain compatible with the project-site base path',()=>{

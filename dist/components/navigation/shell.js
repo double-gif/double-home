@@ -31,7 +31,7 @@ export function globalExp(){
 }
 
 export function globalTopBar(){
- return `<header class="system-top"><div class="top-clock"><span id="os-date"></span><b id="os-clock"></b></div>${globalWeather()}${globalExp()}<div class="top-actions"><button data-action="navigate" data-value="vault" aria-label="打开资料库" title="DATA VAULT">${icon('training',21)}</button><button data-action="effects" aria-pressed="${state.effects}">FX ${state.effects?'ON':'OFF'}</button><button data-action="settings" aria-label="设置" title="SETTINGS">▦</button></div></header>`;
+ return `<header class="system-top"><div class="top-clock"><span id="os-date"></span><b id="os-clock"></b></div>${globalWeather()}${globalExp()}<div class="top-actions"><button data-action="open-research-library" aria-label="打开研究资料库" title="LOCAL LIBRARY">${icon('training',21)}</button><button data-action="effects" aria-pressed="${state.effects}">FX ${state.effects?'ON':'OFF'}</button><button data-action="settings" aria-label="设置" title="SETTINGS">▦</button></div></header>`;
 }
 
 export function globalShell(route,body){return `${globalSidebar(route)}${globalTopBar()}${body}<div class="crt" aria-hidden="true"></div>`}
