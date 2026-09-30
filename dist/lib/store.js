@@ -1,4 +1,5 @@
 import {migrateMission} from './progress/model.js';
+import {migrateResearch,overallProgress} from './research/model.js';
 import {initial} from '../data/seed.js';
 
 export const LEGACY_KEY='bibaboo-v02';
@@ -7,7 +8,7 @@ export const PROFILE_INDEX_KEY='double-home:profiles:v1';
 export const ACTIVE_PROFILE_KEY='double-home:active-profile:v1';
 export const LEGACY_MIGRATION_KEY='double-home:legacy-migration:v1';
 const PROFILE_PREFIX='double-home:profile:';
-const PRIVATE_ARRAYS=['tasks','sessions','expEvents','translations','vocab','theories','papers','diaries','finance','files','trainingDays'];
+const PRIVATE_ARRAYS=['tasks','sessions','expEvents','translations','vocab','chapters','theories','papers','reviewThemes','diaries','finance','files','trainingDays'];
 let failed=false;
 
 function read(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
@@ -28,14 +29,14 @@ function legacyState(){
  for(const word of old.stars||[])if(!next.vocab.some(v=>v.word===word))next.vocab.push({id:'legacy-'+word,word,pos:'V0.1 收藏',zh:'',pt:'',sentence:'',collocation:'',synonyms:'',register:'',c1:'从 V0.1 保留的个人收藏。',tags:'V0.1',saved:true,reviews:0});
  return next;
 }
-function profileCounts(data){return {tasks:data.tasks?.length||0,focus:data.sessions?.length||0,translations:data.translations?.length||0,diary:data.diaries?.length||0,finance:data.finance?.length||0,research:(data.papers?.length||0)+(data.theories?.length||0),files:data.files?.length||0}}
+function profileCounts(data){return {tasks:data.tasks?.length||0,focus:data.sessions?.length||0,translations:data.translations?.length||0,diary:data.diaries?.length||0,finance:data.finance?.length||0,research:(data.chapters?.length||0)+(data.papers?.length||0)+(data.theories?.length||0)+(data.reviewThemes?.length||0),files:data.files?.length||0}}
 function scope(data,profileId){
  data.profileId=profileId;
  for(const key of PRIVATE_ARRAYS){if(!Array.isArray(data[key]))continue;data[key]=data[key].map(item=>item&&typeof item==='object'&&!Array.isArray(item)?{...item,profileId}:item)}
  if(data.moods&&typeof data.moods==='object')for(const key of Object.keys(data.moods)){const mood=data.moods[key];if(mood&&typeof mood==='object')data.moods[key]={...mood,profileId}}
  return data;
 }
-function prepare(data,profileId){const next={...initial(),...(data||{})};migrateMission(next);return scope(next,profileId)}
+function prepare(data,profileId){const next={...initial(),...(data||{})};migrateResearch(next);migrateMission(next);return scope(next,profileId)}
 function replaceState(next){for(const key of Object.keys(state))delete state[key];Object.assign(state,next)}
 function bootstrap(){
  if(index.profiles.length||read(LEGACY_MIGRATION_KEY))return;
@@ -80,7 +81,7 @@ export function dateKey(date=new Date()){return new Date(date).toLocaleDateStrin
 export function update(fn){fn(state);save()}
 export function esc(v=''){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 export const fmt=m=>`${String(Math.floor(m/60)).padStart(2,'0')}H ${String(Math.round(m%60)).padStart(2,'0')}M`;
-export function totalProgress(){return Math.round(state.chapters.reduce((a,b)=>a+Number(b),0)/Math.max(1,state.chapters.length))}
+export function totalProgress(){return overallProgress(state.chapters)}
 export function focusRecords(range='today',today=new Date()){let start=new Date(today);start.setHours(0,0,0,0);if(range==='week')start.setDate(start.getDate()-(start.getDay()+6)%7);if(range==='month')start.setDate(1);if(range==='year')start=new Date(today.getFullYear(),0,1);return state.sessions.filter(s=>s.date>=dateKey(start)&&s.date<=dateKey(today))}
 export function streak(today=new Date()){const dates=new Set(state.sessions.map(s=>s.date));let d=new Date(today),n=0;if(!dates.has(dateKey(d)))d.setDate(d.getDate()-1);while(dates.has(dateKey(d))){n++;d.setDate(d.getDate()-1)}return n}
 export function minutes(range){return focusRecords(range).reduce((a,s)=>a+(s.durationMinutes??s.minutes??0),0)}
