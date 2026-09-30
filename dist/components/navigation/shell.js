@@ -4,6 +4,7 @@ import {requirement} from '../../lib/progress/model.js';
 import {weatherText} from '../../lib/services.js';
 import {destinations} from '../hud/home.js';
 import {icon} from '../pixel/primitives.js';
+import {weatherCat} from '../pixel/cats.js';
 
 export function profileUiText(){
  const value=state.uiText&&typeof state.uiText==='object'?state.uiText:{};
@@ -14,8 +15,8 @@ export function profileUiText(){
 }
 
 export function globalSidebar(route){
- const name=esc(currentProfile()?.displayName||'Guest'),motto=esc(profileUiText().sidebarMotto);
- return `<aside class="side-nav"><a class="home-brand" href="#home">${name}'s home</a><button class="side-profile" data-action="settings" title="Local profile">${name} · LOCAL</button><nav aria-label="城市区域">${destinations.map(([id,en])=>`<a href="#${id}" class="${route===id?'active':''}" ${route===id?'aria-current="page"':''}>${icon(id,32)}<span>${en}</span></a>`).join('')}</nav><div class="side-bottom"><div class="city-thumb" role="img" aria-label="像素赛博城市预览"></div><p class="sidebar-motto">${motto}</p></div></aside>`;
+ const name=esc(currentProfile()?.displayName||'Guest'),motto=esc(profileUiText().sidebarMotto),progress=state.playerProgress||{level:1,currentExp:0},needed=requirement(progress.level),percent=Math.max(0,Math.min(100,progress.currentExp/needed*100));
+ return `<aside class="side-nav"><a class="home-brand" href="#home">${name}'s home</a><button class="side-profile" data-action="settings" title="Local profile">${name} · LOCAL</button><nav aria-label="城市区域">${destinations.map(([id,en])=>`<a href="#${id}" class="${route===id?'active':''}" ${route===id?'aria-current="page"':''}>${icon(id,32)}<span>${en}</span></a>`).join('')}</nav><div class="side-bottom"><div class="city-thumb" role="img" aria-label="像素赛博城市预览"></div><p class="sidebar-motto">${motto}</p><div class="sidebar-level"><b>LV.${String(progress.level).padStart(2,'0')}</b><span class="sidebar-cat">${weatherCat('normal')}</span></div><span class="sidebar-exp-bar" role="progressbar" aria-label="侧栏经验" aria-valuenow="${Math.round(percent)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${percent}%"></i></span></div></aside>`;
 }
 
 function weatherKind(code){if(code===0)return'sun';if(code==null||code<4)return'cloud';return'rain'}

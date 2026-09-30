@@ -21,11 +21,11 @@ test('file storage, profile metadata and backup support remain intact',()=>{
  assert.match(research,/LOCAL LIBRARY \/ 本地资料/);
 });
 
-test('sidebar preview uses one uncropped rectangular ratio at every desktop height',()=>{
+test('sidebar footer preview uses the approved portrait crop without changing scene assets',()=>{
  const base=fs.readFileSync('dist/styles/scene.css','utf8');
  const refined=fs.readFileSync('dist/styles/scene-refinement.css','utf8');
- assert.match(base,/\.city-thumb\{[^}]*aspect-ratio:16\/9[^}]*center\/contain no-repeat/);
- assert.match(refined,/\.city-thumb\{[^}]*aspect-ratio:16\/9[^}]*center\/contain no-repeat/);
+ assert.match(base,/\.city-thumb\{[^}]*aspect-ratio:3\/4[^}]*center\/cover no-repeat/);
+ assert.match(refined,/\.city-thumb\{[^}]*aspect-ratio:3\/4[^}]*center\/cover no-repeat/);
  assert.doesNotMatch(base,/\.city-thumb\{[^}]*\/350%/);
- assert.doesNotMatch(refined,/\.city-thumb\{[^}]*aspect-ratio:3\/2/);
+ assert.match(refined,/\.sidebar-motto\{[^}]*min-height:3\.2em/);
 });
