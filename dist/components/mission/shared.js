@@ -1,9 +1,9 @@
 import {esc} from '../../lib/store.js';
 import {icon} from '../pixel/primitives.js';
-import {moodCat} from '../pixel/cats.js';
+import {catImg} from '../pixel/cats.js';
 import {categoryNames} from '../../lib/progress/model.js';
 import {globalShell,profileUiText} from '../navigation/shell.js';
-export const cat=()=>moodCat('calm',30);
+export const cat=()=>catImg('tiny','mood-cat cat-png cat-tiny',30);
 const paths={mission:'M5 2h3V1h4v1h3v2h2v15H3V4h2z M6 3v3h8V3h-2v2H8V3z M6 9h2v2H6zm4 0h4v1h-4zm-4 5h2v2H6zm4 0h4v1h-4z',star:'M9 1h2v5h5v2h3v2h-5v4h2v4h-3v-2H7v2H4v-4h2v-4H1V8h3V6h5z',flag:'M4 2h2v2h7V3h4v8h-5v1H6v7H4z',chart:'M2 11h3v7H2zm5-5h3v12H7zm5-4h3v16h-3zm-11 17h17v1H1z',work:'M7 2h6v3h5v13H2V5h5z M8 3v2h4V3z M3 8v2h6v2h2v-2h6V8z',globe:'M7 1h6v2h3v3h2v8h-2v3h-3v2H7v-2H4v-3H2V6h2V3h3z M8 3v5h4V3z M4 8v4h3V8z M8 10v6h4v-6z M13 8v4h3V8z',calendar:'M4 1h2v3h8V1h2v3h3v15H1V4h3z M3 8v9h14V8z M5 10h3v2H5zm6 0h3v2h-3z M5 14h3v2H5z',snow:'M9 1h2v6l4-4 2 2-5 4h7v2h-7l5 4-2 2-4-5v7H9v-7l-4 5-2-2 4-4H1V9h6L3 5l2-2 4 4z',storm:'M4 3h10v2h3v6h-6l-3 4h3l-6 5 1-7H2V6h2z'};
 export function glyph(name,size=22){return paths[name]?`<svg width="${size}" height="${size}" viewBox="0 0 20 20" fill="currentColor" fill-rule="evenodd" shape-rendering="crispEdges" aria-hidden="true"><path d="${paths[name]}"/></svg>`:icon(name,size)}
 export const categoryIcon=cat=>glyph(({RESEARCH:'training',PORTUGUESE:'globe',TRANSLATION:'mission',WORK:'work',LIFE:'life',OTHER:'vault'})[cat]||'vault',20);

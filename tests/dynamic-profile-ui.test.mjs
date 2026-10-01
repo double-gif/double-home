@@ -68,7 +68,7 @@ test('sidebar footer uses real progress, the existing cat, and escaped multiling
  assert.match(html,/class="sidebar-level"/);
  assert.match(html,/LV\.03/);
  assert.match(html,/class="sidebar-cat"/);
- assert.match(html,/英短蓝金天气助手/);
+ assert.match(html,/assets\/cat\/cat-sidebar\.png/);
  assert.match(html,/class="sidebar-exp-bar"[^>]*aria-valuenow="25"/);
  assert.equal(store.currentProfile().profileId,profile.profileId);
 });
