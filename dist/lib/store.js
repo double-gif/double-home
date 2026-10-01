@@ -1,6 +1,7 @@
 import {migrateMission} from './progress/model.js';
 import {migrateResearch,overallProgress} from './research/model.js';
 import {initial} from '../data/seed.js';
+import {normalizeTrainingGoal} from './training-goal.js';
 
 export const LEGACY_KEY='bibaboo-v02';
 export const KEY=LEGACY_KEY;
@@ -36,7 +37,7 @@ function scope(data,profileId){
  if(data.moods&&typeof data.moods==='object')for(const key of Object.keys(data.moods)){const mood=data.moods[key];if(mood&&typeof mood==='object')data.moods[key]={...mood,profileId}}
  return data;
 }
-function prepare(data,profileId){const next={...initial(),...(data||{})};migrateResearch(next);migrateMission(next);return scope(next,profileId)}
+function prepare(data,profileId){const next={...initial(),...(data||{})};next.trainingGoal=normalizeTrainingGoal(next.trainingGoal);migrateResearch(next);migrateMission(next);return scope(next,profileId)}
 function replaceState(next){for(const key of Object.keys(state))delete state[key];Object.assign(state,next)}
 function bootstrap(){
  if(index.profiles.length||read(LEGACY_MIGRATION_KEY))return;
