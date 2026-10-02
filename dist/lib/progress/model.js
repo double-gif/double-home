@@ -1,15 +1,34 @@
-// Pure local models. Legacy text/cat/done and minutes aliases keep existing views compatible.
+// Pure local models. Focus keeps its established categories; Mission has its own
+// profile-scoped registry so custom task categories never alter focus history.
 export const categories=['RESEARCH','PORTUGUESE','TRANSLATION','WORK','LIFE','OTHER'];
-export const categoryNames={RESEARCH:'论文',PORTUGUESE:'葡语',TRANSLATION:'翻译',WORK:'工作',LIFE:'生活',OTHER:'其他'};
+export const categoryNames={RESEARCH:'论文',PORTUGUESE:'葡语',TRANSLATION:'翻译',WORK:'工作',LIFE:'生活',OTHER:'其他',thesis:'论文',work:'工作',study:'学习',life:'生活',entertainment:'娱乐',other:'其他'};
+export const DEFAULT_TASK_CATEGORIES=Object.freeze([
+ {id:'thesis',label:'论文',builtIn:true},
+ {id:'work',label:'工作',builtIn:true},
+ {id:'study',label:'学习',builtIn:true},
+ {id:'life',label:'生活',builtIn:true},
+ {id:'entertainment',label:'娱乐',builtIn:true}
+]);
+export const LEGACY_TASK_CATEGORY_MAP=Object.freeze({RESEARCH:'thesis',PORTUGUESE:'study',TRANSLATION:'study',WORK:'work',LIFE:'life',OTHER:'other',THESIS:'thesis','论文':'thesis','葡语':'study','翻译':'study','工作':'work','生活':'life','娱乐':'entertainment','学习':'study','其他':'other'});
 export const localDay=(date=new Date())=>new Date(date).toLocaleDateString('sv-SE');
 const categoryOf=value=>categories.includes(value)?value:({'论文':'RESEARCH',THESIS:'RESEARCH','葡语':'PORTUGUESE','翻译':'TRANSLATION','生活':'LIFE','工作':'WORK'})[value]||'OTHER';
 const id=()=>globalThis.crypto.randomUUID();
+const cleanCategoryLabel=value=>String(value||'').trim().slice(0,24);
+const taskCategoryOf=value=>LEGACY_TASK_CATEGORY_MAP[value]||String(value||'').trim()||'life';
+export function getTaskCategories(state){return Array.isArray(state.taskCategories)&&state.taskCategories.length?state.taskCategories:DEFAULT_TASK_CATEGORIES.map(item=>({...item}))}
+export function getTaskCategory(state,categoryId){return getTaskCategories(state).find(category=>category.id===categoryId)||{id:categoryId,label:categoryNames[categoryId]||String(categoryId||'其他'),builtIn:false}}
+export function ensureTaskCategories(state){
+ const supplied=Array.isArray(state.taskCategories)?state.taskCategories:[],custom=[],seen=new Set(DEFAULT_TASK_CATEGORIES.map(category=>category.id));
+ for(const category of supplied){const categoryId=String(category?.id||'').trim(),label=cleanCategoryLabel(category?.label);if(!categoryId||!label||seen.has(categoryId))continue;seen.add(categoryId);custom.push({id:categoryId,label,builtIn:false,legacy:!!category.legacy})}
+ for(const task of state.tasks||[]){const raw=task.category||task.cat,idValue=taskCategoryOf(raw);if(seen.has(idValue))continue;const label=idValue==='other'?'其他':cleanCategoryLabel(categoryNames[raw]||raw||'其他');seen.add(idValue);custom.push({id:idValue,label,builtIn:false,legacy:true})}
+ state.taskCategories=[...DEFAULT_TASK_CATEGORIES.map(category=>({...category})),...custom];return state.taskCategories;
+}
 export function normalizeTask(t,today=localDay()){
- const category=categoryOf(t.category||t.cat),done=t.done===true||t.status==='DONE',dueDate=t.dueDate??t.deadline??'';
- return {...t,id:t.id??id(),title:t.title??t.text??'',text:t.title??t.text??'',category,cat:categoryNames[category],questType:['MAIN','SIDE','DAILY','NORMAL'].includes(t.questType)?t.questType:'DAILY',status:done?'DONE':t.status|| (dueDate>today?'UPCOMING':'TODAY'),done,dueDate,estimatedMinutes:t.estimatedMinutes??'',note:t.note||'',createdAt:t.createdAt||null,completedAt:t.completedAt||null,expAwarded:!!t.expAwarded,parentTaskId:t.parentTaskId||''};
+ const category=taskCategoryOf(t.category||t.cat),done=t.done===true||t.status==='DONE',dueDate=t.dueDate??t.deadline??'';
+ return {...t,id:t.id??id(),title:t.title??t.text??'',text:t.title??t.text??'',category,cat:categoryNames[category]||t.cat||category,questType:['MAIN','SIDE','DAILY','NORMAL'].includes(t.questType)?t.questType:'DAILY',status:done?'DONE':t.status|| (dueDate>today?'UPCOMING':'TODAY'),done,dueDate,estimatedMinutes:t.estimatedMinutes??'',note:t.note||'',createdAt:t.createdAt||null,completedAt:t.completedAt||null,expAwarded:!!t.expAwarded,parentTaskId:t.parentTaskId||''};
 }
 export function migrateMission(state){
- state.tasks=(state.tasks||[]).map(t=>normalizeTask(t));
+ ensureTaskCategories(state);state.tasks=(state.tasks||[]).map(t=>{const task=normalizeTask(t);task.cat=getTaskCategory(state,task.category).label;return task});
  state.sessions=(state.sessions||[]).map(s=>({...s,id:s.id??id(),category:categoryOf(s.category||s.cat),durationMinutes:Number(s.durationMinutes??s.minutes)||0,minutes:Number(s.durationMinutes??s.minutes)||0,cat:categoryOf(s.category||s.cat)==='RESEARCH'?'THESIS':categoryOf(s.category||s.cat),linkedTaskId:s.linkedTaskId||'',note:s.note||'',createdAt:s.createdAt|| (s.endedAt?new Date(s.endedAt).toISOString():null)}));
  state.playerProgress??={level:1,currentExp:0,totalExp:0,awardedTaskIds:[]};
  state.playerProgress.awardedTaskIds??=[];state.expEvents??=[];
@@ -17,8 +36,9 @@ export function migrateMission(state){
   // Existing completed tasks do not create fabricated EXP history, nor earn again after reopening.
   state.expExcludedTaskIds=state.tasks.filter(t=>t.done).map(t=>String(t.id));
   if(state.timer){state.retiredTimer={...state.timer};delete state.timer}
-  state.missionSchemaVersion=1;
+ state.missionSchemaVersion=1;
  }
+ state.taskCategorySchemaVersion=1;
  state.expExcludedTaskIds??=[];
  return state;
 }
@@ -44,15 +64,18 @@ export function saveQuest(state,data,taskId=''){
  if(data.dueDate&&!validDate(data.dueDate))throw Error('日期格式不正确');
  const duration=data.estimatedMinutes===''||data.estimatedMinutes==null?'':Number(data.estimatedMinutes);
  if(duration!==''&&(!Number.isInteger(duration)||duration<1||duration>1440))throw Error('预计时间需为 1–1440 分钟');
- if(!categories.includes(data.category)||!['MAIN','SIDE','DAILY','NORMAL'].includes(data.questType))throw Error('请选择类别与任务类型');
+ if(!getTaskCategories(state).some(category=>category.id===data.category)||!['MAIN','SIDE','DAILY','NORMAL'].includes(data.questType))throw Error('请选择类别与任务类型');
  const status=['TODAY','UPCOMING','SOMEDAY'].includes(data.status)?data.status:'TODAY';
- if(status==='UPCOMING'&&!data.dueDate)throw Error('Upcoming 任务需要截止日期');
+ if(status==='UPCOMING'&&!data.dueDate)throw Error('“即将开始”任务需要截止日期');
  let parent=String(data.parentTaskId||'');
  if(parent&&(parent===String(taskId)||data.questType==='MAIN'||!state.tasks.some(t=>String(t.id)===parent&&t.questType==='MAIN')))throw Error('子任务需关联另一条主线任务');
- const task=normalizeTask({...existing,id:existing?.id||id(),title,category:data.category,questType:data.questType,dueDate:data.dueDate||'',deadline:data.dueDate||'',estimatedMinutes:duration,note:String(data.note||'').slice(0,10000),parentTaskId:parent,status:existing?.done?'DONE':status,done:existing?.done||false,createdAt:existing?.createdAt||new Date().toISOString()});
+ const task=normalizeTask({...existing,id:existing?.id||id(),title,category:data.category,questType:data.questType,dueDate:data.dueDate||'',deadline:data.dueDate||'',estimatedMinutes:duration,note:String(data.note||'').slice(0,10000),parentTaskId:parent,status:existing?.done?'DONE':status,done:existing?.done||false,createdAt:existing?.createdAt||new Date().toISOString()});task.cat=getTaskCategory(state,task.category).label;
  if(existing)Object.assign(existing,task);else state.tasks.push(task);
  return task;
 }
+export function createTaskCategory(state,label){const clean=cleanCategoryLabel(label);if(!clean)throw Error('分类名称不能为空');if(getTaskCategories(state).some(category=>category.label.toLocaleLowerCase()===clean.toLocaleLowerCase()))throw Error('分类名称已存在');const category={id:`custom-${id()}`,label:clean,builtIn:false};state.taskCategories.push(category);return category}
+export function renameTaskCategory(state,categoryId,label){const category=getTaskCategories(state).find(item=>item.id===categoryId);if(!category||category.builtIn)throw Error('内置分类不能重命名');const clean=cleanCategoryLabel(label);if(!clean)throw Error('分类名称不能为空');if(getTaskCategories(state).some(item=>item.id!==categoryId&&item.label.toLocaleLowerCase()===clean.toLocaleLowerCase()))throw Error('分类名称已存在');category.label=clean;for(const task of state.tasks.filter(task=>task.category===categoryId))task.cat=clean;return category}
+export function deleteTaskCategory(state,categoryId,reassignTo){const category=getTaskCategories(state).find(item=>item.id===categoryId),target=getTaskCategories(state).find(item=>item.id===reassignTo);if(!category||category.builtIn)throw Error('内置分类不能删除');if(!target||target.id===categoryId)throw Error('请选择新的任务分类');for(const task of state.tasks.filter(task=>task.category===categoryId)){task.category=target.id;task.cat=target.label}state.taskCategories=state.taskCategories.filter(item=>item.id!==categoryId);return target}
 export function deleteQuest(state,taskId){state.tasks=state.tasks.filter(t=>String(t.id)!==String(taskId));if(String(state.mainQuestId)===String(taskId))state.mainQuestId=null;/* ledger and linked session snapshots intentionally survive */}
 export function validDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(value)&&localDay(new Date(value+'T12:00:00'))===value}
 export function saveFocus(state,data,sessionId=''){

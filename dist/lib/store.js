@@ -9,7 +9,7 @@ export const PROFILE_INDEX_KEY='double-home:profiles:v1';
 export const ACTIVE_PROFILE_KEY='double-home:active-profile:v1';
 export const LEGACY_MIGRATION_KEY='double-home:legacy-migration:v1';
 const PROFILE_PREFIX='double-home:profile:';
-const PRIVATE_ARRAYS=['tasks','sessions','expEvents','translations','vocab','chapters','theories','papers','reviewThemes','diaries','finance','files','trainingDays'];
+const PRIVATE_ARRAYS=['taskCategories','tasks','sessions','expEvents','translations','vocab','chapters','theories','papers','reviewThemes','diaries','finance','files','trainingDays'];
 let failed=false;
 
 function read(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
