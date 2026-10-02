@@ -20,7 +20,7 @@ test('Control Room keeps English district titles with Chinese descriptions',()=>
  const city=fs.readFileSync('dist/components/city/screens.js','utf8');
  assert(city.includes('map(([id,en,zh])'));
  assert(city.includes('<b>${en}</b><p>${zh}</p>'));
- assert(city.includes('<span>CONTROL CORE<p>${name}\'s home</p><small>SYSTEM ONLINE</small></span>'));
+ assert(city.includes('<span><b>CONTROL CORE</b><p>${name}\'s home</p><small>SYSTEM ONLINE</small></span>'));
  assert.deepEqual(destinations.slice(1).map(([id,en,zh])=>[id,en,zh]),[
   ['research','RESEARCH LAB','论文研究所'],
   ['training','TRAINING NETWORK','葡语训练中心'],

@@ -15,12 +15,12 @@ test('active profile name drives brand, Control Core and top user label',()=>{
  const double=store.createProfile('double');
  let regular=shell('home',''),city=cityScreen(),mission=missionShell('mission','');
  assert.match(regular,/double's home/);assert.match(regular,/double · LOCAL/);
- assert.match(city,/CONTROL CORE<p>double's home/);
+ assert.match(city,/<b>CONTROL CORE<\/b><p>double's home/);
  assert.match(mission,/double's home/);assert.match(mission,/double · LOCAL/);
  const mia=store.createProfile('mia');
  regular=shell('home','');city=cityScreen();mission=missionShell('mission','');
  assert.match(regular,/mia's home/);assert.match(regular,/mia · LOCAL/);
- assert.match(city,/CONTROL CORE<p>mia's home/);
+ assert.match(city,/<b>CONTROL CORE<\/b><p>mia's home/);
  assert.match(mission,/mia's home/);assert.match(mission,/mia · LOCAL/);
  store.switchProfile(double.profileId);
  assert.match(shell('home',''),/double's home/);
